@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Image — Monochrome Zinc icon</title>
+  <desc id="desc">Two distinct monochrome zinc mountains with compact white snowcaps and a round moon on a deep green background, enclosed in a white rounded square frame. A fine inset outline preserves the frame on light backgrounds. Everything beyond the frame is transparent. Flat vector colors without gradients, glow, glass, or northern lights.</desc>
+  <style>
+    .frameKeyline { stroke: #C4C4CC; stroke-width: 6; opacity: .58; }
+    @media (max-width: 32px) { .frameKeyline { stroke-width: 12; opacity: .65; } }
+  </style>
+  <defs><clipPath id="outerClip"><rect width="1024" height="1024" rx="128"/></clipPath>
+    <clipPath id="sceneClip"><rect x="40" y="40" width="944" height="944" rx="88"/></clipPath></defs>
+  <g clip-path="url(#outerClip)">
+    <rect width="1024" height="1024" rx="128" fill="#FFFFFF"/>
+    <g clip-path="url(#sceneClip)">
+      <rect x="40" y="40" width="944" height="944" fill="#27272A"/>
+      <circle cx="751" cy="247" r="76" fill="#FFFFFF"/>
+      <path d="M440 824L719 550Q735 534 751 550L1030 837V1040H440Z" fill="#5B5B63"/>
+      <path d="M735 542Q744 543 751 550L1030 837V864C922 834 834 751 790 678C755 625 731 586 735 542Z" fill="#A1A1AA"/>
+      <path d="M578 708L719 550Q735 534 751 550L875 678C836 661 805 632 781 609C760 588 748 576 733 576C717 576 702 590 687 608Z" fill="#FFFFFF"/>
+      <path d="M8 824L326 484Q342 466 359 483L1010 1026H8Z" fill="#71717a"/>
+      <path d="M343 474Q351 475 359 483L1010 1026C869 970 752 880 624 748C499 628 404 549 343 474Z" fill="#A1A1AA"/>
+      <path d="M24 807L326 484Q342 466 359 483L590 676C519 648 461 605 415 563C390 542 369 529 352 529C333 526 320 540 305 558L24 861Z" fill="#E4E4E7"/>
+    </g>
+    <rect class="frameKeyline" x="3" y="3" width="1018" height="1018" rx="125"/>
+  </g>
+</svg>

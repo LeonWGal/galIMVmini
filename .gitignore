@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller / Build outputs
+build/
+dist/
+*.spec
+
+# Caches and virtual environments
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+
+# IDE / Editor configuration
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Operating System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Temporary and local test outputs
+*.log
+*.tmp
+temp/
+scratch/
