@@ -83,7 +83,7 @@ galIMVmini includes built-in translations for:
 
 ### Setup
 ```bash
-git clone https://github.com/your-username/galIMVmini.git
+git clone https://github.com/LeonWGal/galIMVmini.git
 cd galIMVmini
 pip install -r requirements.txt
 python main.py
