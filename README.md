@@ -1,157 +1,127 @@
 # galIMVmini
 
-<p align="center">
-  <strong>Lightweight AI Image Metadata Inspector & Viewer in the spirit of galIMV</strong><br>
-  <em>High-performance prompt extraction, sleek Lobe Hub Neo aesthetics, 100% vector Tabler icons, aspect-ratio analysis, and full 20-language internationalization.</em>
-</p>
+A desktop image viewer and metadata inspector for AI-generated images. galIMVmini opens local images, parses generation parameters into structured fields, computes aspect ratios, and provides full internationalization across 20 languages.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Python-3.8+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.8+"/>
-  <img src="https://img.shields.io/badge/GUI-PyQt6-41CD52?style=flat-square&logo=qt&logoColor=white" alt="PyQt6"/>
-  <img src="https://img.shields.io/badge/Design-Lobe%20Hub%20Neo-1677ff?style=flat-square" alt="Lobe Hub Neo"/>
-  <img src="https://img.shields.io/badge/Icons-Tabler%20Icons-0ea5e9?style=flat-square" alt="Tabler Icons"/>
-  <img src="https://img.shields.io/badge/Languages-20%20Locales-purple?style=flat-square" alt="20 Languages"/>
-  <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License MIT"/>
-</p>
+![galIMVmini Dark Interface](docs/screenshots/galimvmini_dark_en.png)
 
----
+## Core Capabilities
 
-## 🌟 Overview
+### Metadata Parsing
+- **Stable Diffusion (Automatic1111, WebUI Forge, SD.Next)**: extracts positive and negative prompts, seed, sampler, steps, CFG scale, model checkpoint, hash, denoise strength, and clip skip.
+- **Extension Parameters**: detects Forge, TIPO, and ADetailer metadata blocks.
+- **ComfyUI**: parses execution graphs, prompt nodes, checkpoints, and latent sampler parameters.
+- **Fooocus & NovelAI**: reads embedded JSON generation payloads.
+- **Midjourney & EXIF**: extracts camera data, image dimensions, megapixels, and PNG text chunks.
+- **Sidecar Files**: reads companion `.txt` files with prompt text; automatically hides the sidecar section when no matching file exists.
 
-**galIMVmini** is a minimalist, ultra-responsive desktop application engineered specifically for viewing AI-generated artworks and inspecting detailed generation metadata. It brings the refined visual identity and powerful parsing capabilities of **galIMV** into a lightweight, focused tool.
+### Aspect Ratio Calculation
+- Detects standard photo and display ratios: `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3`, `21:9`, `5:4`.
+- Displays ratio badges in the parameters card, window title, and status bar.
 
-Whether you are organizing Stable Diffusion outputs, exploring ComfyUI node workflows, or verifying image aspect ratios, galIMVmini delivers an instantaneous, clutter-free experience.
+### Interface & Design
+- **Lobe Theme**: dark (`#18181b`) and light (`#ffffff`) modes with 6 accent colors (Blue, Purple, Emerald, Orange, Rose, Zinc).
+- **Tabler Vector Icons**: clean SVG icons rendered at native display resolution without emoji characters.
+- **State Persistence**: theme mode, accent color, and active language persist across restarts in a local configuration file.
+- **Balanced Layout**: default 50/50 proportion between image canvas and inspector panel with a draggable splitter.
+- **Fullscreen View**: toggle with `F11`, exit with `Esc`. Canvas automatically refits the image upon entering or exiting fullscreen mode.
 
----
+### Supported Languages (20 Locales)
+galIMVmini includes built-in translations for:
+- English (`en_US`)
+- Russian (`ru_RU`)
+- Simplified Chinese (`zh_CN`)
+- Traditional Chinese (`zh_TW`)
+- Japanese (`ja_JP`)
+- Korean (`ko_KR`)
+- German (`de_DE`)
+- French (`fr_FR`)
+- Spanish (`es_ES`)
+- Portuguese (Brazil) (`pt_BR`)
+- Italian (`it_IT`)
+- Polish (`pl_PL`)
+- Turkish (`tr_TR`)
+- Ukrainian (`uk_UA`)
+- Dutch (`nl_NL`)
+- Indonesian (`id_ID`)
+- Vietnamese (`vi_VN`)
+- Thai (`th_TH`)
+- Arabic (`ar_SA`)
+- Hindi (`hi_IN`)
 
-## ✨ Features
+## Keyboard Shortcuts
 
-### 🔍 Comprehensive AI Metadata Parsing
-- **Stable Diffusion (Automatic1111, WebUI Forge, SD.Next)**: Positive/negative prompts, model checkpoint, hash, sampler, steps, CFG scale, seed, denoise strength, and clip skip.
-- **Advanced Forge / TIPO / ADetailer**: Automatically detects and structures complex extension outputs into readable badges.
-- **ComfyUI**: Traverses recursive node graphs (`KSampler`, `CLIPTextEncode`, `CheckpointLoaderSimple`, latent dimensions, upscalers).
-- **NovelAI & Fooocus**: Embedded JSON metadata extraction and parsing.
-- **Midjourney & EXIF**: Extracts camera parameters, dimensions, megapixels, color profiles, timestamps, and PNG text chunks.
-- **Sidecar Files (`.txt`)**: Seamlessly reads paired text files; automatically hides sidecar sections when not present to save vertical screen space.
-
-### 📐 Aspect Ratio Analysis
-- Real-time aspect ratio computation with smart recognition of standard photography, cinema, and display proportions:
-  - `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3`, `21:9`, `5:4`, `7:4 (~16:9)`
-- Highlighted badge in Prompt Parameters, window title, and status bar.
-
-### 🎨 galIMV Design System (Lobe Hub Neo)
-- **100% Vector Tabler Icons**: Crisp, modern iconography across all pixel densities with zero emoji dependencies.
-- **Aspect Ratio & 100% Real Size Icon**: Dedicated Tabler `aspect-ratio` button for resetting to 100% natural resolution.
-- **Calibrated Themes & Persistence**: Seamless switching between Dark (`#18181b`) and Light (`#ffffff`) themes, with automatic saving of theme mode, accent, and language.
-- **6 Lobe Accent Colors**: Lobe Blue (`#1677ff`), Lobe Purple (`#722ed1`), Emerald (`#10b981`), Orange (`#fa8c16`), Rose (`#f43f5e`), and Zinc (`#71717a`).
-- **50 / 50 Balanced Layout**: Default equal proportion between image canvas and inspector with flexible draggable splitter.
-
-### 🖥️ Fullscreen & Performance
-- **Fullscreen Mode**: Toggle via `F11`, with instant `Esc` exit.
-- **Compact Maximized Layout**: Card frames, prompt boxes, and tabs stay snug and proportional without bloated margins or vertical empty space.
-- **Auto Canvas Refit**: Automatically recenters and scales image smoothly upon entering or exiting fullscreen mode.
-- **High Responsiveness**: Optimized rendering with `SmartViewportUpdate`, resize caching on text labels, and batched table updates.
-
-### 🌐 20 Languages Supported (i18n)
-Full internationalization parity with **galIMV**. Switch instantly on the fly:
-| Language | Code | Language | Code |
-| :--- | :--- | :--- | :--- |
-| **Русский** (Russian) | `ru_RU` | **Italiano** (Italian) | `it_IT` |
-| **English** | `en_US` | **Polski** (Polish) | `pl_PL` |
-| **简体中文** (Simplified Chinese) | `zh_CN` | **Türkçe** (Turkish) | `tr_TR` |
-| **繁體中文** (Traditional Chinese) | `zh_TW` | **Українська** (Ukrainian) | `uk_UA` |
-| **日本語** (Japanese) | `ja_JP` | **Nederlands** (Dutch) | `nl_NL` |
-| **한국어** (Korean) | `ko_KR` | **Bahasa Indonesia** | `id_ID` |
-| **Deutsch** (German) | `de_DE` | **Tiếng Việt** (Vietnamese) | `vi_VN` |
-| **Français** (French) | `fr_FR` | **ไทย** (Thai) | `th_TH` |
-| **Español** (Spanish) | `es_ES` | **العربية** (Arabic) | `ar_SA` |
-| **Português (Brasil)** | `pt_BR` | **हिन्दी** (Hindi) | `hi_IN` |
-
----
-
-## ⌨️ Keyboard Shortcuts
-
-| Shortcut | Action |
+| Key | Action |
 | :--- | :--- |
-| **Ctrl + O** | Open image file |
-| **Ctrl + H** | Open recent files history |
-| **Ctrl + C** | Copy positive prompt |
-| **Ctrl + E** | Export metadata (TXT, Markdown, JSON, CSV) |
-| **0** | Fit image to window |
-| **1** | 100% Original Size (Real Size) |
-| **+** / **-** | Zoom In / Zoom Out |
-| **Mouse Wheel** | Smooth zoom centered on cursor |
-| **Left Click + Drag** | Pan image |
-| **I** | Show / Hide Inspector panel |
-| **F11** | Toggle Fullscreen mode |
-| **Esc** | Exit Fullscreen mode |
+| `Ctrl + O` | Open image file |
+| `Ctrl + H` | Recent files menu |
+| `Ctrl + C` | Copy prompt text to clipboard |
+| `Ctrl + E` | Export metadata (TXT, Markdown, JSON, CSV) |
+| `0` | Fit image to window |
+| `1` | Zoom to 100% natural resolution |
+| `+` / `-` | Zoom in / Zoom out |
+| `Mouse Wheel` | Zoom anchored at cursor position |
+| `Left Click + Drag` | Pan canvas |
+| `I` | Toggle inspector panel visibility |
+| `F11` | Toggle fullscreen mode |
+| `Esc` | Exit fullscreen mode |
 
----
+## Installation & Running
 
-## 🚀 Getting Started
+### Requirements
+- Python 3.8+
+- PyQt6 6.5+
+- Pillow 10.0+
 
-### Prerequisites
-- Python 3.8 or higher
-- Windows 10 / 11 (or Linux / macOS with Qt6)
-
-### Installation
+### Setup
 ```bash
 git clone https://github.com/your-username/galIMVmini.git
 cd galIMVmini
 pip install -r requirements.txt
-```
-
-### Running the App
-```bash
 python main.py
 ```
-*Or simply double-click `run.bat` on Windows.*
 
----
+On Windows, you can also run `run.bat`.
 
-## 📦 Building Standalone Executable (Windows)
+## Building Executables
 
-You can build a standalone, portable Windows `.exe` using PyInstaller:
+Create a standalone Windows build with PyInstaller:
 
 ```bash
-# Build portable distribution folder (fast startup)
+# Directory distribution (faster launch)
 python build_exe.py
 
-# Or build single-file standalone executable
+# Single-file portable executable
 python build_exe.py --onefile
 ```
 
-*Or run `build_exe.bat`.* The output will be generated inside the `dist/` directory.
+Build artifacts are placed in the `dist/` directory.
 
----
-
-## 📂 Project Structure
+## Project Structure
 
 ```
 galIMVmini/
 ├── core/
-│   ├── i18n.py          # 20-language internationalization engine
+│   ├── i18n.py          # 20-language translation engine
 │   ├── icons.py         # Tabler SVG vector icon repository
-│   ├── metadata.py      # AI metadata parser & aspect ratio engine
-│   └── theme.py         # Lobe Hub Neo theme and palette manager
+│   ├── metadata.py      # AI metadata parser and aspect ratio engine
+│   └── theme.py         # Lobe theme palettes and style generator
 ├── ui/
-│   ├── image_canvas.py  # Optimized QGraphicsView canvas
-│   ├── prompt_card.py   # Compact prompt & parameters inspector card
-│   ├── metadata_table.py# Categorized metadata property table
-│   ├── raw_view.py      # Raw text / JSON viewer
-│   └── main_window.py   # Main window with galIMV toolbar & layout
-├── locales/             # 20 JSON language translations
+│   ├── image_canvas.py  # QGraphicsView image canvas with pan and zoom
+│   ├── prompt_card.py   # Prompt and parameter inspector
+│   ├── metadata_table.py# Structured property table
+│   ├── raw_view.py      # Raw metadata and JSON viewer
+│   └── main_window.py   # Main window layout and toolbar controls
+├── locales/             # Localization JSON files
+├── docs/
+│   └── screenshots/     # Interface screenshots
 ├── resources/           # Application icon (app.ico)
-├── build_exe.py         # PyInstaller distribution build script
-├── build_exe.bat        # Windows build helper script
+├── build_exe.py         # PyInstaller build script
+├── build_exe.bat        # Windows build helper
 ├── main.py              # Application entry point
-├── requirements.txt     # Python package dependencies
-├── LICENSE              # MIT License
-└── README.md            # Project documentation
+├── requirements.txt     # Python dependencies
+└── LICENSE              # MIT License
 ```
 
----
+## License
 
-## 📄 License
-
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.

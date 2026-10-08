@@ -36,8 +36,11 @@ def run_tests():
     assert window is not None
     print("   MainWindow initialized successfully.")
 
-    print("2. Testing Single Image Loading & Metadata Extraction...")
-    test_img = os.path.abspath("c:/Users/User/ImageViewer/test_gallery/anime_portrait_girl.png")
+    candidates = [
+        os.path.abspath("../ImageViewer/test_gallery/anime_portrait_girl.png"),
+        os.path.abspath("c:/Users/User/ImageViewer/test_gallery/anime_portrait_girl.png"),
+    ]
+    test_img = next((p for p in candidates if os.path.exists(p)), candidates[-1])
     window.load_image(test_img)
     
     meta = window._current_meta
