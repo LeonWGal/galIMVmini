@@ -1,5 +1,14 @@
 # galIMVmini
 
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.8+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.8+"/>
+  <img src="https://img.shields.io/badge/GUI-PyQt6-41CD52?style=flat-square&logo=qt&logoColor=white" alt="PyQt6"/>
+  <img src="https://img.shields.io/badge/Design-Lobe-1677ff?style=flat-square" alt="Lobe"/>
+  <img src="https://img.shields.io/badge/Icons-Tabler%20Icons-0ea5e9?style=flat-square" alt="Tabler Icons"/>
+  <img src="https://img.shields.io/badge/Languages-20%20Locales-purple?style=flat-square" alt="20 Locales"/>
+  <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License MIT"/>
+</p>
+
 A desktop image viewer and metadata inspector for AI-generated images. galIMVmini opens local images, parses generation parameters into structured fields, computes aspect ratios, and provides full internationalization across 20 languages.
 
 ![galIMVmini Dark Interface](docs/screenshots/galimvmini_dark_en.png)

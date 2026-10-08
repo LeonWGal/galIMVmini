@@ -1,5 +1,14 @@
 # galIMVmini
 
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.8+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.8+"/>
+  <img src="https://img.shields.io/badge/GUI-PyQt6-41CD52?style=flat-square&logo=qt&logoColor=white" alt="PyQt6"/>
+  <img src="https://img.shields.io/badge/Дизайн-Lobe-1677ff?style=flat-square" alt="Lobe"/>
+  <img src="https://img.shields.io/badge/Иконки-Tabler%20Icons-0ea5e9?style=flat-square" alt="Tabler Icons"/>
+  <img src="https://img.shields.io/badge/Языки-20%20Локализаций-purple?style=flat-square" alt="20 языков"/>
+  <img src="https://img.shields.io/badge/Лицензия-MIT-blue?style=flat-square" alt="Лицензия MIT"/>
+</p>
+
 Легковесный просмотрщик и инспектор метаданных для изображений, созданных нейросетями. galIMVmini открывает локальные файлы, извлекает параметры генерации в структурированный вид, рассчитывает соотношение сторон и поддерживает 20 языков интерфейса.
 
 ![Интерфейс galIMVmini в темной теме](docs/screenshots/galimvmini_dark_ru.png)
