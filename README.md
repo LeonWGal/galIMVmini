@@ -1,6 +1,10 @@
 # galIMVmini
 
 <p align="center">
+  <strong>English</strong> | <a href="README.ru.md">Русский</a>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Python-3.8+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.8+"/>
   <img src="https://img.shields.io/badge/GUI-PyQt6-41CD52?style=flat-square&logo=qt&logoColor=white" alt="PyQt6"/>
   <img src="https://img.shields.io/badge/Design-Lobe-1677ff?style=flat-square" alt="Lobe"/>
