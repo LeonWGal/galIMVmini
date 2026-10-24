@@ -4,9 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "galimvmini"
-version = "1.0.0"
+version = "1.2.0"
 description = "Lightweight AI Image Metadata Inspector & Gallery in the spirit of galIMV"
-authors = [{ name = "galIMV Team" }]
+authors = [{ name = "LeonWGal" }]
 license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.8"

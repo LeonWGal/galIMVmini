@@ -35,18 +35,23 @@ except ImportError:
 class CopyIconButton(QToolButton):
     def __init__(self, tooltip: str = "", parent=None):
         super().__init__(parent)
-        self.setFixedSize(22, 22)
+        self.setFixedSize(32, 32)
         self.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self._custom_tooltip = tooltip
+        self._feedback_timer=QTimer(self)
+        self._feedback_timer.setSingleShot(True)
+        self._feedback_timer.timeout.connect(self.update_style)
         self.update_style()
         ThemeManager.get_instance().add_listener(self.update_style)
 
     def update_style(self):
         c = ThemeManager.get_instance().get_colors()
-        self.setIcon(get_tabler_icon("copy", c.text_secondary, 12))
-        self.setIconSize(QSize(12, 12))
+        self.setIcon(get_tabler_icon("copy", c.text_secondary, 16))
+        self.setIconSize(QSize(16, 16))
         tip = self._custom_tooltip or I18nManager.get_instance().tr("common.copy", "Копировать")
         self.setToolTip(tip)
+        self.setAccessibleName(tip)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setStyleSheet(f"""
             QToolButton {{
                 background-color: {c.bg_card};
@@ -54,6 +59,7 @@ class CopyIconButton(QToolButton):
                 border-radius: 4px;
                 padding: 0px;
             }}
+            QToolButton:focus {{ border: 2px solid {c.accent}; }}
             QToolButton:hover {{
                 background-color: {c.bg_elevated};
                 border-color: {c.accent};
@@ -61,13 +67,10 @@ class CopyIconButton(QToolButton):
         """)
 
     def flash_copied(self):
-        self.setIcon(get_tabler_icon("check", "#10b981", 12))
-        self.setToolTip(I18nManager.get_instance().tr("common.copied", "Скопировано!"))
-        tip = self._custom_tooltip or I18nManager.get_instance().tr("common.copy", "Копировать")
-        QTimer.singleShot(1400, lambda: (
-            self.update_style(),
-            self.setToolTip(tip)
-        ))
+        c=ThemeManager.get_instance().get_colors()
+        self.setIcon(get_tabler_icon("check",c.accent_text,16))
+        self.setToolTip(I18nManager.get_instance().tr("common.copied","Copied"))
+        self._feedback_timer.start(1400)
 
 
 class ElidedLabel(QLabel):
@@ -81,6 +84,7 @@ class ElidedLabel(QLabel):
     def setText(self, text: str):
         self._full_text = text
         self._last_w = -1
+        self.setToolTip(text)
         self._update_elided()
 
     def text(self) -> str:
@@ -112,15 +116,15 @@ class ParamBadge(QFrame):
     def __init__(self, key: str, value: str, is_copyable: bool = False, parent=None):
         super().__init__(parent)
         self.key = key
-        self.value = value
+        self.value = str(value)
         self.is_copyable = is_copyable
-        self.setFixedHeight(22)
+        self.setMinimumHeight(32)
         self.setFrameShape(QFrame.Shape.NoFrame)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(6, 1, 6, 1)
-        layout.setSpacing(5)
+        layout.setContentsMargins(8, 4, 8, 4)
+        layout.setSpacing(8)
 
         c = ThemeManager.get_instance().get_colors()
 
@@ -133,8 +137,10 @@ class ParamBadge(QFrame):
         self._val_lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         layout.addWidget(self._val_lbl, 1)
 
-        self.setToolTip(f"{key}: {value}" + ("\n(Кликните, чтобы скопировать)" if is_copyable else ""))
+        self.setToolTip(f"{key}: {value}" + ("\n"+I18nManager.get_instance().tr("common.click_to_copy","Click to copy") if is_copyable else ""))
         if is_copyable:
+            self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+            self.setAccessibleName(f"{key}: {value}")
             self.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
         self.update_style()
@@ -142,8 +148,8 @@ class ParamBadge(QFrame):
 
     def update_style(self):
         c = ThemeManager.get_instance().get_colors()
-        self._key_lbl.setStyleSheet(f"color: {c.text_muted}; font-size: 9px; font-weight: 700; letter-spacing: 0.4px; background: transparent; border: none;")
-        self._val_lbl.setStyleSheet(f"color: {c.text_primary}; font-size: 10.5px; font-weight: 600; background: transparent; border: none;")
+        self._key_lbl.setStyleSheet(f"color: {c.text_muted}; font-size: 11px; font-weight: 500; letter-spacing: 0.4px; background: transparent; border: none;")
+        self._val_lbl.setStyleSheet(f"color: {c.text_primary}; font-size: 13px; font-weight: 600; background: transparent; border: none;")
         
         self.setStyleSheet(f"""
             ParamBadge {{
@@ -151,11 +157,20 @@ class ParamBadge(QFrame):
                 border: 1px solid {c.border_subtle};
                 border-radius: 4px;
             }}
+            ParamBadge:focus {{ border: 2px solid {c.accent}; }}
             ParamBadge:hover {{
                 border-color: {c.accent if self.is_copyable else c.border_subtle};
                 background-color: {c.accent_subtle if self.is_copyable else c.bg_elevated};
             }}
         """)
+
+    def keyPressEvent(self,event):
+        if self.is_copyable and event.key() in (Qt.Key.Key_Return,Qt.Key.Key_Enter,Qt.Key.Key_Space):
+            pyperclip.copy(self.value)
+            self.copied.emit(f"{self.key}: {self.value}")
+            event.accept()
+            return
+        super().keyPressEvent(event)
 
     def mousePressEvent(self, event):
         if self.is_copyable and event.button() == Qt.MouseButton.LeftButton:
@@ -190,8 +205,8 @@ class PromptCardView(QWidget):
         self._container = QWidget()
         self._container.setStyleSheet("background: transparent;")
         self._layout = QVBoxLayout(self._container)
-        self._layout.setContentsMargins(8, 6, 8, 8)
-        self._layout.setSpacing(6)
+        self._layout.setContentsMargins(0, 8, 0, 8)
+        self._layout.setSpacing(16)
         scroll.setWidget(self._container)
 
         main_layout.addWidget(scroll)
@@ -218,7 +233,7 @@ class PromptCardView(QWidget):
                 QFrame#cardFrame {{
                     background-color: {c.bg_card};
                     border: 1px solid {c.border_subtle};
-                    border-radius: 6px;
+                    border-radius: 12px;
                 }}
             """)
 
@@ -227,9 +242,9 @@ class PromptCardView(QWidget):
                 background-color: {c.bg_input};
                 color: {c.text_primary};
                 border: 1px solid {c.border_subtle};
-                border-radius: 5px;
+                border-radius: 8px;
                 padding: 4px 6px;
-                font-size: 11.5px;
+                font-size: 13px;
                 line-height: 1.35;
             }}
             QTextEdit:focus {{
@@ -242,11 +257,11 @@ class PromptCardView(QWidget):
 
         # Update all card header titles, icons, and badges
         for title_lbl in self._card_titles:
-            title_lbl.setStyleSheet(f"font-size: 11.5px; font-weight: 600; color: {c.text_primary}; background: transparent; border: none;")
+            title_lbl.setStyleSheet(f"font-size: 13px; font-weight: 600; color: {c.text_primary}; background: transparent; border: none;")
         for icon_lbl, icon_name in self._card_icons:
-            icon_lbl.setPixmap(get_tabler_icon(icon_name, c.accent, 13).pixmap(13, 13))
+            icon_lbl.setPixmap(get_tabler_icon(icon_name, c.accent_text, 16).pixmap(16, 16))
         for badge_lbl in self._card_badges:
-            badge_lbl.setStyleSheet(f"font-size: 9.5px; color: {c.text_muted}; padding: 1px 4px; "
+            badge_lbl.setStyleSheet(f"font-size: 11px; color: {c.text_muted}; padding: 1px 4px; "
                                     f"background: {c.bg_elevated}; border: 1px solid {c.border_subtle}; border-radius: 3px;")
 
         # Refresh parameter widgets if metadata is loaded
@@ -258,6 +273,11 @@ class PromptCardView(QWidget):
         for title_lbl, key in self._card_title_keys:
             if key:
                 title_lbl.setText(i18n.tr(key, title_lbl.text()))
+        for button in self.findChildren(CopyIconButton):
+            if hasattr(button,"_title_i18n_key"):
+                title=i18n.tr(button._title_i18n_key,button._title_fallback) if button._title_i18n_key else button._title_fallback
+                button._custom_tooltip=f"{i18n.tr('common.copy','Copy')} ({title})"
+                button.update_style()
         if self._meta:
             self.set_metadata(self._meta)
 
@@ -269,27 +289,29 @@ class PromptCardView(QWidget):
         frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Maximum)
         frame.setMinimumWidth(0)
         layout = QVBoxLayout(frame)
-        layout.setContentsMargins(7, 5, 7, 5)
+        layout.setContentsMargins(16, 8, 16, 16)
         layout.setSpacing(4)
 
         # Header
         hdr = QHBoxLayout()
         hdr.setContentsMargins(0, 0, 0, 0)
-        hdr.setSpacing(5)
+        hdr.setSpacing(8)
 
         # Function-accurate Tabler Icon
         icon_lbl = QLabel(frame)
-        icon_lbl.setPixmap(get_tabler_icon(icon_name, c.accent, 13).pixmap(13, 13))
+        icon_lbl.setPixmap(get_tabler_icon(icon_name, c.accent_text, 16).pixmap(16, 16))
         icon_lbl.setStyleSheet("background: transparent; border: none;")
         hdr.addWidget(icon_lbl)
 
         disp_title = I18nManager.get_instance().tr(i18n_key, title) if i18n_key else title
-        title_lbl = QLabel(disp_title, frame)
-        title_lbl.setStyleSheet(f"font-size: 11.5px; font-weight: 600; color: {c.text_primary}; background: transparent; border: none;")
-        hdr.addWidget(title_lbl)
+        title_lbl = ElidedLabel(disp_title, frame)
+        title_lbl.setStyleSheet(f"font-size: 13px; font-weight: 600; color: {c.text_primary}; background: transparent; border: none;")
+        hdr.addWidget(title_lbl,1)
 
-        count_badge = QLabel("", frame)
-        count_badge.setStyleSheet(f"font-size: 9.5px; color: {c.text_muted}; padding: 1px 4px; "
+        count_badge = ElidedLabel("", frame)
+        count_badge.setMinimumWidth(64)
+        count_badge.setMaximumWidth(132)
+        count_badge.setStyleSheet(f"font-size: 11px; color: {c.text_muted}; padding: 1px 4px; "
                                   f"background: {c.bg_elevated}; border: 1px solid {c.border_subtle}; border-radius: 3px;")
         count_badge.setVisible(False)
         hdr.addWidget(count_badge)
@@ -303,6 +325,7 @@ class PromptCardView(QWidget):
         if copy_action:
             copy_prefix = I18nManager.get_instance().tr("common.copy", "Копировать")
             btn = CopyIconButton(f"{copy_prefix} ({disp_title})", frame)
+            btn._title_i18n_key=i18n_key;btn._title_fallback=title
             btn.clicked.connect(lambda: (copy_action(), btn.flash_copied()))
             hdr.addWidget(btn)
 
@@ -310,15 +333,22 @@ class PromptCardView(QWidget):
         self._layout.addWidget(frame)
         return frame, layout, count_badge
 
-    def _adjust_text_edit_height(self, edit: QTextEdit, min_h: int = 26, max_h: int = 220):
+    def _adjust_text_edit_height(self, edit: QTextEdit, min_h: int = 40, max_h: int = 220):
         doc = edit.document()
         avail_w = max(50, edit.viewport().width() if edit.viewport() else edit.width() - 14)
         doc.setTextWidth(avail_w)
-        h = int(doc.documentLayout().documentSize().height()) + 8
-        edit.setFixedHeight(max(min_h, min(max_h, h)))
+        h = int(doc.documentLayout().documentSize().height()) + 20
+        edit.setFixedHeight(max(40, min_h, min(max_h, h)))
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
+        if hasattr(self, "_params_grid"):
+            columns = 1 if self.width() < 460 else 2
+            if getattr(self,"_parameter_columns",None) != columns:
+                self._parameter_columns=columns
+                widgets=[self._params_grid.itemAt(i).widget() for i in range(self._params_grid.count())]
+                for w in widgets:self._params_grid.removeWidget(w)
+                for i,w in enumerate(widgets):self._params_grid.addWidget(w,i//columns,i%columns)
         if hasattr(self, "_meta") and self._meta:
             if self._meta.prompt:
                 self._adjust_text_edit_height(self._prompt_edit, 28, 240)
@@ -363,7 +393,7 @@ class PromptCardView(QWidget):
         # Icon: adjustments for settings & parameters
         self._params_frame, layout, _ = self._create_card_frame("Параметры", icon_name="adjustments", i18n_key="prompt.params")
         self._params_grid = QGridLayout()
-        self._params_grid.setSpacing(4)
+        self._params_grid.setSpacing(8)
         layout.addLayout(self._params_grid)
 
     def _create_extra_params_section(self):
@@ -402,7 +432,7 @@ class PromptCardView(QWidget):
     def set_metadata(self, meta: ImageMetadata):
         self._meta = meta
         i18n = I18nManager.get_instance()
-        words_unit = i18n.tr("prompt.words", "слов")
+        word_count_text = lambda count: i18n.tr("prompt.word_count","Words: {count}").replace("{count}",str(count))
 
         # 1. Prompt (Positive)
         prompt_text = meta.prompt.strip() if meta.prompt else ""
@@ -410,7 +440,7 @@ class PromptCardView(QWidget):
         self._prompt_frame.setVisible(bool(prompt_text) or meta.has_ai_metadata)
         if prompt_text:
             word_count = len(prompt_text.split())
-            self._prompt_badge.setText(f"{word_count} {words_unit}")
+            self._prompt_badge.setText(word_count_text(word_count))
             self._prompt_badge.setVisible(True)
             self._adjust_text_edit_height(self._prompt_edit, 28, 240)
         else:
@@ -422,7 +452,7 @@ class PromptCardView(QWidget):
         self._neg_edit.setPlainText(neg_text or "")
         self._neg_frame.setVisible(bool(neg_text))
         if neg_text:
-            self._neg_badge.setText(f"{len(neg_text.split())} {words_unit}")
+            self._neg_badge.setText(word_count_text(len(neg_text.split())))
             self._neg_badge.setVisible(True)
             self._adjust_text_edit_height(self._neg_edit, 26, 160)
         else:
@@ -433,8 +463,9 @@ class PromptCardView(QWidget):
         while self._params_grid.count():
             it = self._params_grid.takeAt(0)
             if it and it.widget():
-                it.widget().setParent(None)
-                it.widget().deleteLater()
+                widget=it.widget()
+                widget.setParent(None)
+                widget.deleteLater()
 
         core_badges = []
         if meta.model_name:
@@ -468,12 +499,13 @@ class PromptCardView(QWidget):
 
         copied_prefix = i18n.tr("status.copied", "Скопировано")
         row, col = 0, 0
+        columns = 1 if self.width() < 460 else 2
         for key, val, copyable in core_badges:
             b = ParamBadge(key, val, is_copyable=copyable, parent=self._params_frame)
             b.copied.connect(lambda msg, cp=copied_prefix: self.status_requested.emit(f"{cp}: {msg}"))
             self._params_grid.addWidget(b, row, col)
             col += 1
-            if col >= 2:
+            if col >= columns:
                 col = 0
                 row += 1
 
@@ -484,14 +516,16 @@ class PromptCardView(QWidget):
             it = self._extra_layout.takeAt(0)
             if it:
                 if it.widget():
-                    it.widget().setParent(None)
-                    it.widget().deleteLater()
+                    widget=it.widget()
+                    widget.setParent(None)
+                    widget.deleteLater()
                 elif it.layout():
                     while it.layout().count():
                         sub = it.layout().takeAt(0)
                         if sub and sub.widget():
-                            sub.widget().setParent(None)
-                            sub.widget().deleteLater()
+                            widget=sub.widget()
+                            widget.setParent(None)
+                            widget.deleteLater()
 
         c = ThemeManager.get_instance().get_colors()
         has_extras = False
@@ -501,7 +535,7 @@ class PromptCardView(QWidget):
         if tipo_data:
             has_extras = True
             t_lbl = QLabel("TIPO PROMPT OPTIMIZER", self._extra_container)
-            t_lbl.setStyleSheet(f"font-size: 9.5px; font-weight: 700; color: {c.accent}; letter-spacing: 0.5px; padding-top: 2px;")
+            t_lbl.setStyleSheet(f"font-size: 11px; font-weight: 700; color: {c.accent}; letter-spacing: 0.5px; padding-top: 2px;")
             self._extra_layout.addWidget(t_lbl)
 
             t_grid = QGridLayout()
@@ -523,7 +557,7 @@ class PromptCardView(QWidget):
         if ad_items:
             has_extras = True
             ad_lbl = QLabel("ADETAILER", self._extra_container)
-            ad_lbl.setStyleSheet(f"font-size: 9.5px; font-weight: 700; color: {c.accent}; letter-spacing: 0.5px; padding-top: 4px;")
+            ad_lbl.setStyleSheet(f"font-size: 11px; font-weight: 700; color: {c.accent}; letter-spacing: 0.5px; padding-top: 4px;")
             self._extra_layout.addWidget(ad_lbl)
 
             ad_grid = QGridLayout()
@@ -555,7 +589,7 @@ class PromptCardView(QWidget):
             has_extras = True
             rem_title = i18n.tr("prompt.other_params", "Прочие параметры").upper()
             rem_lbl = QLabel(rem_title, self._extra_container)
-            rem_lbl.setStyleSheet(f"font-size: 9.5px; font-weight: 700; color: {c.text_muted}; letter-spacing: 0.5px; padding-top: 4px;")
+            rem_lbl.setStyleSheet(f"font-size: 11px; font-weight: 700; color: {c.text_muted}; letter-spacing: 0.5px; padding-top: 4px;")
             self._extra_layout.addWidget(rem_lbl)
 
             rem_grid = QGridLayout()
@@ -574,8 +608,7 @@ class PromptCardView(QWidget):
         if has_extras:
             self._extra_params_frame.setVisible(True)
             total_extra_count = len(tipo_data) + len(ad_items) + len(remaining_items)
-            param_unit = i18n.tr("prompt.params_count", "параметров")
-            self._extra_badge.setText(f"{total_extra_count} {param_unit}")
+            self._extra_badge.setText(i18n.tr("prompt.parameter_count","Parameters: {count}").replace("{count}",str(total_extra_count)))
             self._extra_badge.setVisible(True)
         else:
             self._extra_params_frame.setVisible(False)
@@ -584,8 +617,9 @@ class PromptCardView(QWidget):
         while self._lora_layout.count() > 1:
             it = self._lora_layout.takeAt(1)
             if it and it.widget():
-                it.widget().setParent(None)
-                it.widget().deleteLater()
+                widget=it.widget()
+                widget.setParent(None)
+                widget.deleteLater()
 
         if meta.loras:
             self._lora_frame.setVisible(True)

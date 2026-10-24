@@ -10,7 +10,7 @@ import os
 import sys
 import json
 from typing import Dict, List, Tuple, Optional, Callable, Any
-from PyQt6.QtCore import QSettings
+from .storage import application_settings
 
 LOCALES: List[Tuple[str, str]] = [
     ("ru_RU", "Русский"),
@@ -2870,7 +2870,7 @@ class I18nManager:
     _instance: Optional["I18nManager"] = None
 
     def __init__(self):
-        self._settings = QSettings("galIMV", "galIMVmini")
+        self._settings = application_settings()
         self._current_locale = self._settings.value("language", "ru_RU")
         if not any(code == self._current_locale for code, _ in LOCALES):
             self._current_locale = "ru_RU"
@@ -2964,15 +2964,13 @@ class I18nManager:
         Translates key using active locale.
         Key format: 'section.subkey' (e.g. 'toolbar.open', 'inspector.aspect_ratio').
         """
-        # 1. Check mini-specific fallbacks
-        curr_mini = MINI_FALLBACKS.get(self._current_locale, {})
+        # The selected catalog is authoritative; compatibility dictionaries only fill gaps.
+        val = self._lookup(self._translations, key)
+        if isinstance(val,str) and val.strip():
+            return val
+        curr_mini = MINI_FALLBACKS.get(self._current_locale,{})
         if key in curr_mini:
             return curr_mini[key]
-
-        # 2. Check loaded locale JSON
-        val = self._lookup(self._translations, key)
-        if val is not None and isinstance(val, str) and val.strip():
-            return val
 
         # 3. Check English fallback
         val_en = self._lookup(self._fallback_en, key)

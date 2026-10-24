@@ -60,7 +60,8 @@
     "empty_desc": "Open a folder with images or AI generations to get started",
     "select_group": "Select Group",
     "deselect_group": "Deselect Group",
-    "items": "items"
+    "items": "items",
+    "click_to_expand": "Click to expand"
   },
   "context": {
     "open_fullscreen": "Open Fullscreen",
@@ -90,7 +91,7 @@
     "parameters": "Generation Parameters",
     "tags": "Extracted Tags",
     "no_selection": "No Image Selected",
-    "no_selection_hint": "Click an image to inspect Stable Diffusion parameters, prompt, and tags.",
+    "no_selection_hint": "Select an image to inspect its prompt, generation settings, and tags.",
     "library_stats": "LIBRARY STATS",
     "total_images": "Total Images:",
     "matching_view": "Matching View:",
@@ -122,7 +123,10 @@
     "value": "Value",
     "source": "Source:",
     "format_json": "Format JSON",
-    "copy_all": "Copy All"
+    "copy_all": "Copy All",
+    "error": "Operation failed",
+    "click_to_copy": "Click to copy",
+    "category": "Category"
   },
   "status": {
     "images": "images",
@@ -166,7 +170,7 @@
     "theme_mode": "Theme Mode",
     "dark": "Dark Theme",
     "light": "Light Theme",
-    "accent_color_title": "Accent Color (Lobe Theme Neo)",
+    "accent_color_title": "Accent color (Lobe)",
     "selected_accent": "Selected Accent:",
     "bg_tone_title": "Background Tone & Grayness",
     "presets": "Presets:",
@@ -232,11 +236,11 @@
     "autodetect_csv": "Auto-Detect Forge-Neo CSV",
     "csv_desc": "Tags from CSV classify Characters, Artists, Series, and Meta styles in the left sidebar.",
     "about_title": "galIMV",
-    "about_subtitle": "Local image viewer and Stable Diffusion generation metadata studio.",
+    "about_subtitle": "Local image viewer and generation metadata inspector.",
     "about_tech_specs": "TECHNICAL SPECIFICATIONS",
-    "tech_core": "• Core: C++20, Qt 6.8 (64-bit MinGW)",
-    "tech_parser": "• Metadata Parser: Zero-allocation streaming parser for PNG chunks and JPEG Exif",
-    "tech_formats": "• Formats: Automatic1111, ComfyUI (node workflows), Fooocus, NovelAI",
+    "tech_core": "• Core: Python 3, PyQt6 (Qt Widgets)",
+    "tech_parser": "• Metadata: PNG text, EXIF, ComfyUI graphs and companion .txt files",
+    "tech_formats": "• Generation data: Automatic1111 parameters, ComfyUI graphs, NovelAI JSON",
     "tech_cache": "• Indexing: Local on-disk binary metadata cache for instant startup",
     "tech_autocomplete": "• Autocomplete: Danbooru CSV prefix & substring matching (15 suggestions)",
     "tech_grouping": "• Grouping: Folder, Checkpoint / Model, Creation Date",
@@ -293,7 +297,9 @@
     "params_count": "parameters",
     "no_data": "No prompt data",
     "other_params": "Other Parameters",
-    "weight": "weight"
+    "weight": "weight",
+    "word_count": "Words: {count}",
+    "parameter_count": "Parameters: {count}"
   },
   "param": {
     "aspect": "Aspect",
@@ -331,10 +337,49 @@
     "image_properties": "Image Properties",
     "camera___exif": "Camera / EXIF",
     "extensions": "Extensions",
-    "raw_chunks": "Raw Chunks"
+    "raw_chunks": "Raw Chunks",
+    "file_info": "File information",
+    "other_parameters": "Other parameters",
+    "camera_info": "Camera information",
+    "gps_data": "GPS data",
+    "other_exif": "Other EXIF"
   },
   "dialog": {
     "open_image": "Select Image",
-    "export_meta": "Export Metadata"
+    "export_meta": "Export Metadata",
+    "images": "Images",
+    "all_files": "All files",
+    "text_file": "Text file",
+    "csv_table": "CSV table"
+  },
+  "ui": {
+    "inspector": "Inspector",
+    "inspector_empty": "Open an image to inspect its prompt and metadata.",
+    "filter_metadata": "Filter metadata…",
+    "missing_file": "File not found. Choose another image.",
+    "invalid_image": "Cannot read this image. Choose a supported file that isn't damaged.",
+    "metadata_error": "Cannot read image metadata. Your previous image is still open."
+  },
+  "metadata": {
+    "filename": "Filename",
+    "full_path": "Full path",
+    "megapixels": "Megapixels",
+    "color_mode": "Color mode",
+    "format": "Image format",
+    "frames": "Frames",
+    "sidecar": "Companion text file",
+    "file_modified": "Date modified",
+    "camera_make": "Camera manufacturer",
+    "camera_model": "Camera model",
+    "lens": "Lens",
+    "date_taken": "Date taken",
+    "exposure_time": "Exposure time",
+    "aperture": "Aperture",
+    "focal_length": "Focal length",
+    "created": "Date created",
+    "software": "Software",
+    "flash": "Flash",
+    "white_balance": "White balance",
+    "version": "Version"
   }
 }

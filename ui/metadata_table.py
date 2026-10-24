@@ -32,8 +32,8 @@ class MetadataTableView(QWidget):
         self._meta: Optional[ImageMetadata] = None
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(6, 4, 6, 6)
-        layout.setSpacing(5)
+        layout.setContentsMargins(0, 8, 0, 8)
+        layout.setSpacing(8)
 
         # Search Bar
         search_layout = QHBoxLayout()
@@ -42,6 +42,8 @@ class MetadataTableView(QWidget):
         self._search_input = QLineEdit(self)
         self._search_input.setPlaceholderText("Фильтр по метаданным...")
         self._search_input.setClearButtonEnabled(True)
+        self._search_input.setMinimumHeight(36)
+        self._search_input.setAccessibleName("Filter metadata")
         self._search_input.textChanged.connect(self._filter_table)
         search_layout.addWidget(self._search_input)
 
@@ -55,6 +57,7 @@ class MetadataTableView(QWidget):
         self._table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self._table.verticalHeader().setVisible(False)
         self._table.setWordWrap(True)
+        self._table.setAccessibleName("Metadata")
         self._table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self._table.customContextMenuRequested.connect(self._show_context_menu)
         self._table.cellDoubleClicked.connect(self._on_cell_double_clicked)
@@ -68,7 +71,8 @@ class MetadataTableView(QWidget):
 
     def update_translations(self):
         i18n = I18nManager.get_instance()
-        self._search_input.setPlaceholderText(i18n.tr("sidebar.filter_tags", "Фильтр по метаданным..."))
+        self._search_input.setPlaceholderText(i18n.tr("ui.filter_metadata", "Filter metadata…"))
+        self._search_input.setAccessibleName(self._search_input.placeholderText())
         prop_lbl = i18n.tr("common.property", "Свойство")
         val_lbl = i18n.tr("common.value", "Значение")
         self._table.setHorizontalHeaderLabels([prop_lbl, val_lbl])
@@ -96,6 +100,22 @@ class MetadataTableView(QWidget):
             }}
         """)
         self._reapply_row_styles()
+
+    @staticmethod
+    def _field_label(key,category):
+        names={
+            "positive prompt":"prompt.positive","negative prompt":"prompt.negative",
+            "steps":"param.steps","sampler":"param.sampler","cfg scale":"param.cfg","seed":"param.seed","size":"param.size",
+            "denoising strength":"param.denoise","clip skip":"param.clip_skip","model":"param.model","model hash":"param.model_hash",
+            "filename":"metadata.filename","folder":"inspector.folder","file size":"inspector.filesize","created":"metadata.created","modified":"metadata.file_modified",
+            "sidecar .txt":"metadata.sidecar","dimensions":"inspector.dimensions","aspect ratio":"param.aspect","megapixels":"metadata.megapixels","format":"metadata.format","color mode":"metadata.color_mode",
+            "datetimeoriginal":"metadata.date_taken","make":"metadata.camera_make","lensmodel":"metadata.lens","lensinfo":"metadata.lens","focallength":"metadata.focal_length","focal_length":"metadata.focal_length",
+            "fnumber":"metadata.aperture","exposuretime":"metadata.exposure_time","software":"metadata.software","flash":"metadata.flash","whitebalance":"metadata.white_balance","version":"metadata.version"}
+        normalized=str(key).lower()
+        if normalized=="isospeedratings":return "ISO"
+        if category=="Camera Info"and normalized=="model":translation="metadata.camera_model"
+        else:translation=names.get(normalized)
+        return I18nManager.get_instance().tr(translation,str(key)) if translation else str(key)
 
     def set_metadata(self, meta: ImageMetadata):
         self._meta = meta
@@ -133,11 +153,12 @@ class MetadataTableView(QWidget):
                     row = self._table.rowCount()
                     self._table.insertRow(row)
 
-                    k_item = QTableWidgetItem(str(key))
+                    k_item = QTableWidgetItem(self._field_label(key,category))
                     k_item.setFlags(k_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                     k_item.setToolTip(str(key))
 
-                    v_item = QTableWidgetItem(str(val))
+                    display_val=I18nManager.get_instance().tr("common.unknown","Unknown") if category in ("Image Properties","File Info") and str(val)=="Unknown" else str(val)
+                    v_item = QTableWidgetItem(display_val)
                     v_item.setFlags(v_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                     v_item.setToolTip(str(val))
 
@@ -151,10 +172,10 @@ class MetadataTableView(QWidget):
         self._table.resizeRowsToContents()
         for r in range(self._table.rowCount()):
             if self._table.columnSpan(r, 0) == 2:
-                self._table.setRowHeight(r, 26)
+                self._table.setRowHeight(r, 32)
             else:
                 curr_h = self._table.rowHeight(r)
-                self._table.setRowHeight(r, max(22, min(95, curr_h)))
+                self._table.setRowHeight(r, max(32, min(160, curr_h)))
 
     def _reapply_row_styles(self):
         c = ThemeManager.get_instance().get_colors()

@@ -9,39 +9,19 @@ Faithful implementation of galIMV's Lobe Hub Neo Design System:
 """
 
 from dataclasses import dataclass
+import weakref
 from typing import Dict, List, Tuple
 
-from PyQt6.QtCore import QSettings
+from .storage import application_settings
+from .design import DESIGN, METRICS, text_on, readable_accent
+from PyQt6.QtGui import QColor
 
-LOBE_ACCENTS: Dict[str, str] = {
-    "Lobe Blue": "#1677ff",
-    "Lobe Purple": "#722ed1",
-    "Lobe Magenta": "#eb2f96",
-    "Lobe Cyan": "#13c2c2",
-    "Lobe Green": "#52c41a",
-    "Lobe Orange": "#fa8c16",
-    "Monochrome Zinc": "#71717a",
-}
+ACCENT_DEFINITIONS={a["name"]:a for a in DESIGN["accents"]}
+LOBE_ACCENTS: Dict[str,str]={name:a["hex"] for name,a in ACCENT_DEFINITIONS.items()}
 
-LOBE_ACCENT_HOVERS: Dict[str, str] = {
-    "Lobe Blue": "#4096ff",
-    "Lobe Purple": "#9254de",
-    "Lobe Magenta": "#f759ab",
-    "Lobe Cyan": "#36cfc9",
-    "Lobe Green": "#73d13d",
-    "Lobe Orange": "#ffa940",
-    "Monochrome Zinc": "#a1a1aa",
-}
-
-LOBE_ACCENT_PRESSED: Dict[str, str] = {
-    "Lobe Blue": "#0958d9",
-    "Lobe Purple": "#531dab",
-    "Lobe Magenta": "#c41d7f",
-    "Lobe Cyan": "#08979c",
-    "Lobe Green": "#389e0d",
-    "Lobe Orange": "#d46b08",
-    "Monochrome Zinc": "#52525b",
-}
+def normalize_accent_name(name):
+    candidate="Lobe "+name[8:] if name.startswith("GestArt ") else name
+    return candidate if candidate in LOBE_ACCENTS else "Lobe Blue"
 
 @dataclass
 class ThemeColors:
@@ -51,6 +31,8 @@ class ThemeColors:
     accent_hover: str
     accent_pressed: str
     accent_subtle: str
+    accent_ink: str
+    accent_text: str
     
     bg_app: str
     bg_surface: str
@@ -75,10 +57,13 @@ class ThemeManager:
     _instance = None
 
     def __init__(self):
-        self._settings = QSettings("galIMV", "galIMVmini")
+        self._settings = application_settings()
         self.is_dark = self._settings.value("theme_is_dark", True, type=bool)
         saved_accent = str(self._settings.value("theme_accent", "Lobe Blue"))
-        self.accent_name = saved_accent if saved_accent in LOBE_ACCENTS else "Lobe Blue"
+        self.accent_name = normalize_accent_name(saved_accent)
+        if self.accent_name != saved_accent:
+            self._settings.setValue("theme_accent",self.accent_name)
+            self._settings.sync()
         self._listeners = []
 
     @classmethod
@@ -87,13 +72,13 @@ class ThemeManager:
             cls._instance = ThemeManager()
         return cls._instance
 
-    def add_listener(self, callback):
-        if callback not in self._listeners:
-            self._listeners.append(callback)
+    def add_listener(self,callback):
+        for ref in self._listeners:
+            if ref()==callback:return
+        self._listeners.append(weakref.WeakMethod(callback) if getattr(callback,"__self__",None) is not None else lambda:callback)
 
-    def remove_listener(self, callback):
-        if callback in self._listeners:
-            self._listeners.remove(callback)
+    def remove_listener(self,callback):
+        self._listeners=[ref for ref in self._listeners if ref() is not None and ref()!=callback]
 
     def set_theme(self, is_dark: bool, accent_name: str = None):
         self.is_dark = is_dark
@@ -118,71 +103,28 @@ class ThemeManager:
         self._notify()
 
     def _notify(self):
-        for cb in self._listeners:
-            try:
-                cb()
-            except Exception:
-                pass
+        self._listeners=[ref for ref in self._listeners if ref() is not None]
+        for ref in list(self._listeners):
+            callback=ref()
+            if callback is not None:
+                try:callback()
+                except RuntimeError:pass # A Qt widget may already have been destroyed.
 
     def get_colors(self) -> ThemeColors:
-        accent = LOBE_ACCENTS.get(self.accent_name, "#1677ff")
-        accent_hover = LOBE_ACCENT_HOVERS.get(self.accent_name, "#4096ff")
-        accent_pressed = LOBE_ACCENT_PRESSED.get(self.accent_name, "#0958d9")
-        
-        if self.is_dark:
-            return ThemeColors(
-                is_dark=True,
-                accent_name=self.accent_name,
-                accent=accent,
-                accent_hover=accent_hover,
-                accent_pressed=accent_pressed,
-                accent_subtle="rgba(22, 119, 255, 0.16)",
-                
-                bg_app="#0e0e12",          # galIMV obsidian canvas
-                bg_surface="#141419",      # galIMV surface panels & toolbar
-                bg_card="#1a1a23",         # galIMV card containers
-                bg_elevated="#22222e",     # galIMV badge hover & active items
-                bg_input="#101015",        # galIMV deep contrast input areas
-                
-                border_subtle="#262633",   # galIMV refined border
-                border_active=accent,
-                border_specular="rgba(255, 255, 255, 0.12)",
-                
-                text_primary="#f8f8fc",    # galIMV high-contrast crisp text
-                text_secondary="#c8c8d2",  # galIMV secondary text
-                text_muted="#9494a0",      # galIMV captions & labels
-                
-                scroll_track="transparent",
-                scroll_handle="#2b2b3a",
-                scroll_handle_hover="#424258",
-            )
-        else:
-            return ThemeColors(
-                is_dark=False,
-                accent_name=self.accent_name,
-                accent=accent,
-                accent_hover=accent_hover,
-                accent_pressed=accent_pressed,
-                accent_subtle="rgba(22, 119, 255, 0.12)",
-                
-                bg_app="#f8fafc",          # Clean modern canvas (Slate 50)
-                bg_surface="#ffffff",      # Pure crisp white panels & cards
-                bg_card="#ffffff",         # Card containers
-                bg_elevated="#f1f5f9",     # Hover items & chips (Slate 100)
-                bg_input="#f8fafc",        # Inputs with subtle boundary
-                
-                border_subtle="#e2e8f0",   # Crisp Slate 200 border
-                border_active=accent,
-                border_specular="rgba(0, 0, 0, 0.04)",
-                
-                text_primary="#0f172a",    # Deep crisp slate black (rich contrast)
-                text_secondary="#334155",  # Clear legible slate text
-                text_muted="#64748b",      # Legible captions & labels
-                
-                scroll_track="transparent",
-                scroll_handle="#cbd5e1",
-                scroll_handle_hover="#94a3b8",
-            )
+        p = DESIGN["colors"]["dark" if self.is_dark else "light"]
+        definition=ACCENT_DEFINITIONS.get(self.accent_name,ACCENT_DEFINITIONS["Lobe Blue"])
+        accent=definition.get("dark" if self.is_dark else "light",definition["hex"])
+        hover=QColor(accent).lighter(108).name() if self.is_dark else QColor(accent).darker(106).name()
+        pressed=QColor(accent).darker(112).name()
+        rgb=tuple(int(accent[i:i+2],16) for i in (1,3,5))
+        return ThemeColors(is_dark=self.is_dark,accent_name=self.accent_name,
+            accent=accent,accent_hover=hover,accent_pressed=pressed,
+            accent_subtle=f"rgba({rgb[0]}, {rgb[1]}, {rgb[2]}, {0.18 if self.is_dark else 0.10})",
+            accent_ink=text_on(accent),accent_text=readable_accent(accent,p["card"]),
+            bg_app=p["canvas"],bg_surface=p["surface"],bg_card=p["card"],bg_elevated=p["raised"],bg_input=p["input"],
+            border_subtle=p["border"],border_active=accent,border_specular=p["border"],
+            text_primary=p["text"],text_secondary=p["secondary"],text_muted=p["muted"],
+            scroll_track="transparent",scroll_handle=p["scroll"],scroll_handle_hover=p["secondary"])
 
     def get_application_stylesheet(self) -> str:
         c = self.get_colors()
@@ -204,13 +146,13 @@ class ThemeManager:
         QToolBar {{
             background-color: {c.bg_surface};
             border-bottom: 1px solid {c.border_subtle};
-            padding: 3px 8px;
-            spacing: 4px;
+            padding: 8px 12px;
+            spacing: 8px;
         }}
         QToolBar::separator {{
             width: 1px;
             background-color: {c.border_subtle};
-            margin: 5px 6px;
+            margin: 8px;
         }}
 
         /* ToolButton */
@@ -218,8 +160,8 @@ class ThemeManager:
             background-color: transparent;
             color: {c.text_secondary};
             border: 1px solid transparent;
-            border-radius: 6px;
-            padding: 2px 5px;
+            border-radius: 8px;
+            padding: 4px 8px;
             font-weight: 500;
             font-size: 12px;
         }}
@@ -238,7 +180,7 @@ class ThemeManager:
         QToolButton:checked {{
             background-color: {c.accent_subtle};
             border-color: {c.accent};
-            color: {c.accent};
+            color: {c.accent_text};
         }}
 
         /* PushButton */
@@ -246,8 +188,8 @@ class ThemeManager:
             background-color: {c.bg_card};
             color: {c.text_primary};
             border: 1px solid {c.border_subtle};
-            border-radius: 6px;
-            padding: 4px 10px;
+            border-radius: 8px;
+            padding: 8px 12px;
             font-weight: 500;
             font-size: 12px;
         }}
@@ -265,12 +207,12 @@ class ThemeManager:
         }}
         QPushButton#primaryOpenBtn {{
             background-color: {c.accent};
-            color: #ffffff;
+            color: {c.accent_ink};
             border: 1px solid {c.accent};
-            border-radius: 6px;
-            padding: 4px 12px;
+            border-radius: 8px;
+            padding: 8px 12px;
             font-weight: 600;
-            font-size: 12.5px;
+            font-size: 13px;
         }}
         QPushButton#primaryOpenBtn:hover {{
             background-color: {c.accent_hover};
@@ -286,10 +228,10 @@ class ThemeManager:
             background-color: {c.bg_input};
             color: {c.text_primary};
             border: 1px solid {c.border_subtle};
-            border-radius: 6px;
+            border-radius: 8px;
             padding: 6px 10px;
             selection-background-color: {c.accent};
-            selection-color: #ffffff;
+            selection-color: {c.accent_ink};
         }}
         QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus {{
             border: 1px solid {c.accent};
@@ -332,12 +274,12 @@ class ThemeManager:
         QTabBar::tab {{
             background-color: transparent;
             color: {c.text_secondary};
-            padding: 3px 9px;
-            margin-right: 2px;
+            padding: 8px 12px;
+            margin-right: 4px;
             border: none;
             border-bottom: 2px solid transparent;
             font-weight: 500;
-            font-size: 11px;
+            font-size: 12px;
         }}
         QTabBar::tab:hover {{
             color: {c.text_primary};
@@ -346,7 +288,7 @@ class ThemeManager:
             border-top-right-radius: 4px;
         }}
         QTabBar::tab:selected {{
-            color: {c.accent};
+            color: {c.accent_text};
             border-bottom: 2px solid {c.accent};
             font-weight: 600;
         }}
@@ -417,7 +359,7 @@ class ThemeManager:
             color: {c.text_secondary};
             border-top: 1px solid {c.border_subtle};
             padding: 2px 8px;
-            font-size: 11px;
+            font-size: 12px;
         }}
 
         /* Menu */
@@ -429,12 +371,12 @@ class ThemeManager:
             padding: 4px;
         }}
         QMenu::item {{
-            padding: 6px 18px;
+            padding: 8px 16px;
             border-radius: 4px;
         }}
         QMenu::item:selected {{
             background-color: {c.accent};
-            color: #ffffff;
+            color: {c.accent_ink};
         }}
         QMenu::separator {{
             height: 1px;
@@ -442,12 +384,27 @@ class ThemeManager:
             margin: 4px 6px;
         }}
 
+        QToolButton:focus, QPushButton:focus, QComboBox:focus {{
+            border: 2px solid {c.accent};
+        }}
+        QToolButton:disabled, QPushButton:disabled {{ color: {c.text_muted}; }}
+        QComboBox {{
+            background-color: {c.bg_input}; color: {c.text_primary};
+            border: 1px solid {c.border_subtle}; border-radius: 8px;
+            min-height: 32px; padding: 0px 8px;
+        }}
+        QComboBox QAbstractItemView {{
+            background-color: {c.bg_surface}; color: {c.text_primary};
+            selection-background-color: {c.bg_elevated}; selection-color: {c.text_primary};
+        }}
+        QStackedWidget#inspectorStack {{ background-color: {c.bg_surface}; }}
+        QLabel#inspectorHeading {{ font-size: 16px; font-weight: 600; padding: 0px; }}
         /* ToolTip */
         QToolTip {{
             background-color: {c.bg_card};
             color: {c.text_primary};
             border: 1px solid {c.border_subtle};
-            border-radius: 6px;
+            border-radius: 8px;
             padding: 5px 8px;
             font-size: 12px;
         }}

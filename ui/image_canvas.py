@@ -7,7 +7,7 @@ and double-click toggle.
 
 from PyQt6.QtWidgets import (
     QGraphicsView, QGraphicsScene, QGraphicsPixmapItem,
-    QFrame, QVBoxLayout, QLabel, QWidget
+    QFrame, QVBoxLayout, QLabel, QWidget, QPushButton
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QPointF, QRectF
 from PyQt6.QtGui import (
@@ -57,6 +57,7 @@ class ImageCanvas(QGraphicsView):
 
         # Empty state overlay
         self._overlay = QWidget(self)
+        self._overlay.setObjectName("imageEmptyState")
         self._overlay_layout = QVBoxLayout(self._overlay)
         self._overlay_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
@@ -64,8 +65,17 @@ class ImageCanvas(QGraphicsView):
         self._drop_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._drop_label.setWordWrap(True)
         self._drop_label.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._drop_label.mousePressEvent = lambda e: self.open_requested.emit()
+        self._drop_label.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
+        self._overlay_layout.setSpacing(16)
+        self._overlay_layout.setContentsMargins(32,32,32,32)
         self._overlay_layout.addWidget(self._drop_label)
+        self._browse_button=QPushButton(self._overlay)
+        self._browse_button.setObjectName("primaryOpenBtn")
+        self._browse_button.setMinimumHeight(36)
+        self._browse_button.setMaximumWidth(240)
+        self._browse_button.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self._browse_button.clicked.connect(self.open_requested.emit)
+        self._overlay_layout.addWidget(self._browse_button,alignment=Qt.AlignmentFlag.AlignHCenter)
 
         self.update_theme()
         ThemeManager.get_instance().add_listener(self.update_theme)
@@ -82,23 +92,17 @@ class ImageCanvas(QGraphicsView):
         hint = i18n.tr("drop.hint", "или нажмите, чтобы открыть файл (JPG, PNG, WebP, GIF, BMP, TIFF)")
         btn = i18n.tr("drop.browse", "Обзор файлов (Ctrl+O)")
         self._drop_label.setText(
-            f"<div style='font-size: 15px; font-weight: 600; margin-bottom: 8px; color: {c.text_primary};'>{title}</div>"
-            f"<div style='font-size: 12px; color: {c.text_secondary}; margin-bottom: 14px;'>{hint}</div>"
-            f"<div style='display: inline-block; padding: 6px 14px; background-color: {c.bg_card}; "
-            f"border: 1px solid {c.border_subtle}; border-radius: 6px; font-size: 12px; color: {accent}; font-weight: 500;'>{btn}</div>"
-        )
-        self._drop_label.setStyleSheet(f"""
-            QLabel {{
-                background-color: {c.bg_surface};
-                border: 2px dashed {c.border_subtle};
-                border-radius: 12px;
-                padding: 30px 40px;
-            }}
-            QLabel:hover {{
-                border-color: {c.accent};
-                background-color: {c.bg_card};
-            }}
-        """)
+            f"<p style='font-size:20px;font-weight:600;color:{c.text_primary};'>{title}</p>"
+            f"<p style='font-size:13px;color:{c.text_secondary};'>{hint}</p>")
+        self._drop_label.setStyleSheet("background: transparent; border: none; padding: 16px;")
+        self._browse_button.setText(btn)
+        self._browse_button.setAccessibleName(btn)
+        try:
+            from core.icons import get_tabler_icon
+        except ImportError:
+            from galIMVmini.core.icons import get_tabler_icon
+        self._browse_button.setIcon(get_tabler_icon("folder-open",c.accent_ink,18))
+        self._overlay.setStyleSheet(f"QWidget#imageEmptyState {{ background-color:{c.bg_app}; }}")
 
     def set_pixmap(self, pixmap: QPixmap):
         self._scene.clear()

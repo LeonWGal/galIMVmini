@@ -6,11 +6,14 @@ categorized metadata tables, responsive layout, theme switching, and zoom contro
 
 import os
 import sys
+import tempfile
 
 # Ensure UTF-8 output
 sys.stdout.reconfigure(encoding='utf-8')
 
 os.environ['QT_QPA_PLATFORM'] = 'offscreen'
+_test_profile=tempfile.TemporaryDirectory()
+os.environ['GALIMVMINI_DATA_DIR']=_test_profile.name
 
 # Add galIMVmini root to path
 root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -36,11 +39,7 @@ def run_tests():
     assert window is not None
     print("   MainWindow initialized successfully.")
 
-    candidates = [
-        os.path.abspath("../ImageViewer/test_gallery/anime_portrait_girl.png"),
-        os.path.abspath("c:/Users/User/ImageViewer/test_gallery/anime_portrait_girl.png"),
-    ]
-    test_img = next((p for p in candidates if os.path.exists(p)), candidates[-1])
+    test_img = os.path.join(root_dir,"tests","fixtures","anime_portrait_girl.png")
     window.load_image(test_img)
     
     meta = window._current_meta
@@ -131,7 +130,7 @@ Steps: 50, Sampler: DPM++ 2S a, Schedule type: Karras, CFG scale: 7, Seed: 72609
     print("   Aspect ratio calculation verified for standard and close ratios.")
 
     print("9. Testing 20 Languages Internationalization (i18n)...")
-    from galIMVmini.core.i18n import I18nManager, LOCALES
+    from core.i18n import I18nManager, LOCALES
     i18n = I18nManager.get_instance()
     assert len(LOCALES) == 20, f"Expected 20 locales, got {len(LOCALES)}"
     for code, name in LOCALES:
@@ -145,7 +144,7 @@ Steps: 50, Sampler: DPM++ 2S a, Schedule type: Karras, CFG scale: 7, Seed: 72609
     print(f"   Successfully tested all {len(LOCALES)} locales.")
 
     print("10. Testing Tabler Icons...")
-    from galIMVmini.core.icons import get_tabler_icon
+    from core.icons import get_tabler_icon
     for icon_name in ["multiplier-1x", "fit-window", "maximize", "minimize", "world", "palette", "sun", "moon", "copy", "search"]:
         ico = get_tabler_icon(icon_name)
         assert not ico.isNull(), f"Icon '{icon_name}' should not be null"

@@ -32,8 +32,8 @@ class RawTextView(QWidget):
         self._meta: Optional[ImageMetadata] = None
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(6, 4, 6, 6)
-        layout.setSpacing(5)
+        layout.setContentsMargins(0, 8, 0, 8)
+        layout.setSpacing(8)
 
         # Header controls
         hdr = QHBoxLayout()
@@ -57,9 +57,14 @@ class RawTextView(QWidget):
         layout.addLayout(hdr)
 
         # Monospace Text Box
+        # Keep long translated actions out of the source selector row.
+        hdr.removeWidget(self._fmt_json_btn); hdr.removeWidget(self._copy_btn)
+        actions=QHBoxLayout();actions.setSpacing(8);actions.addStretch(1)
+        actions.addWidget(self._fmt_json_btn);actions.addWidget(self._copy_btn)
+        layout.addLayout(actions)
         self._text_edit = QTextEdit(self)
         self._text_edit.setReadOnly(True)
-        mono_font = QFont("Consolas, Courier New, monospace", 10)
+        mono_font = QFont("Consolas", 10)
         self._text_edit.setFont(mono_font)
         layout.addWidget(self._text_edit)
 
@@ -84,7 +89,7 @@ class RawTextView(QWidget):
                 color: {c.text_primary};
                 border: 1px solid {c.border_subtle};
                 border-radius: 6px;
-                padding: 4px 10px;
+                padding: 8px;
             }}
             QComboBox::drop-down {{
                 border: none;

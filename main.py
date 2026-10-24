@@ -15,14 +15,17 @@ from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QIcon, QFont
 
+from core.storage import configure_temporary_files
 from core.theme import ThemeManager
 from ui.main_window import MainWindow
 
 def main():
+    configure_temporary_files()
     # Enable high DPI
     app = QApplication(sys.argv)
     app.setApplicationName("galIMVmini")
-    app.setOrganizationName("galIMV")
+    app.setApplicationVersion("1.2.0")
+    app.setOrganizationName("LeonWGal")
     app.setFont(QFont("Segoe UI", 9))
 
     # Set icon

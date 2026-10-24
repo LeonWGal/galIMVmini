@@ -31,7 +31,9 @@ def build():
     cmd = [
         sys.executable, "-m", "PyInstaller",
         "--name=galIMVmini",
+        f"--paths={script_dir}",
         "--windowed",
+        f"--version-file={os.path.join(script_dir, 'resources', 'version_info.txt')}",
         "--noconsole",
         f"--distpath={dist_dir}",
         f"--workpath={build_dir}",
@@ -55,6 +57,7 @@ def build():
 
     if onefile:
         cmd.append("--onefile")
+        cmd.append("--runtime-tmpdir=%TEMP%/LeonWGal/galIMVmini")
     else:
         cmd.append("--onedir")
 
